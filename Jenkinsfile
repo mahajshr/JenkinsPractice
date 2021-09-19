@@ -1,35 +1,75 @@
-pipeline {
-    agent any
+String exitcode='0'
+
+pipeline { 
+    agent any 
+   
     stages {
-        stage('Stage_one') {
-            steps {
-                echo 'Hello World, this is Stage_one'
+        stage('Stage 1') { 
+            steps { 
+               bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_1.pl"
             }
         }
-		stage('Stage_two') {
+        stage('Stage 2'){
             steps {
-                echo 'Hello World, this is Stage_two'
+                script
+                {
+                    if (exitcode!='0')
+                    {
+                       bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_2.pl"
+                    }
+                    else
+                    {
+                        unstable("Stage 2 skipped")
+                    }
+                }
             }
         }
-		stage('Stage_Three') {
-            steps {
-                echo 'Hello World, this is Stage_Three'
+        stage('Stage 3') {
+             steps {
+                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_3.pl"
+                 }
             }
         }
-		stage('Stage_Four') {
+        stage('Stage 4') {
+            when{ expression{
+                exitcode!='0' 
+            }
+            }
             steps {
-                echo 'Hello World, this is Stage_Four'
+                bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_4.pl"
             }
         }
-		stage('Stage_Five') {
+         stage('Stage 5') {
             steps {
-                echo 'Hello World, this is Stage_Five'
+                 warnError('Script failed!') {
+                   bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_3.pl"
+                }
             }
         }
-    }
-    post { 
-        always { 
-            echo 'I will always say Hello again!'
+         stage('Stage 6') {
+            steps {
+                bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_4.pl"
+            }
+        }
+        stage('Stage parallel check') {
+            parallel {
+                stage('Stage 7') {
+                    steps {
+                       bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_5.pl"
+                    }
+                }
+                 stage('Stage 8') {
+                    steps {
+                       bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_6.pl"
+                    }
+                }
+            }   
+        }
+         stage('Stage 9') {
+            steps {
+                bat "perl D:\\jenkins\\Jobs\\Pipeline_examples\\script_4.pl"
+            }
         }
     }
 }
